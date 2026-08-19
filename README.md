@@ -1,29 +1,29 @@
 # EV Battery Failure Classification & Health Monitoring Web Application
 
-Predictive analytics and failure classification dashboard for Electric Vehicle (EV) battery packs using machine learning.
+Predictive analytics and failure classification dashboard for Electric Vehicle (EV) battery packs using Machine Learning.
+
+🚀 **Live Web Application**: [https://electric-vehicle-battery-failure-classification.streamlit.app](https://electric-vehicle-battery-failure-classification.streamlit.app)
 
 ---
 
-## Overview
+## 📌 Overview
 
-This application provides real-time binary classification (Healthy vs. High Risk Failure) to monitor EV battery degradation based on vehicle telemetry and operational stress parameters. Built using Streamlit, Python, and Scikit-Learn.
+This application provides real-time binary classification (**Healthy** vs. **High Risk Failure**) to monitor EV battery degradation based on vehicle telemetry and operational stress parameters. Built using Streamlit, Python, Scikit-Learn, and Plotly.
 
 ---
 
-## Directory Structure
+## 📁 Directory Structure
 
 ```text
 Electric-Vehicle-battery-failure-classification/
 ├── data/
 │   └── ev_battery_health_subset.csv       # Telemetry dataset (4,000 records)
 ├── models/
-│   └── best_ev_battery_model.pkl          # Tuned Logistic Regression model
+│   └── best_ev_battery_model.pkl          # Single bundled ML model artifact (Model + Scaler + Encodings)
 ├── docs/
 │   └── EV_Battery_Failure.ipynb           # Model development & EDA notebook
-├── .streamlit/
-│   └── config.toml                        # Streamlit theme & server configuration
 ├── app.py                                 # Streamlit Web Application entrypoint
-├── model_loader.py                        # Preprocessing & inference pipeline
+├── model_loader.py                        # Single-pkl preprocessing & inference pipeline
 ├── requirements.txt                       # Python dependencies
 ├── .gitignore                             # Git ignore rules
 └── README.md                              # Project documentation
@@ -31,46 +31,47 @@ Electric-Vehicle-battery-failure-classification/
 
 ---
 
-## Machine Learning Performance
+## 📊 Machine Learning Performance
 
-* **Best Model Algorithm**: Tuned Logistic Regression (`C=0.1`)
-* **Test Classification Accuracy**: **93.00%**
-* **Failure Recall**: **93.25%** (Detects 373 out of 400 failing battery packs)
-* **Discriminative Power**: **0.9807 ROC-AUC**
-* **F1 Score**: **93.02%**
+* **Best Model Algorithm**: Tuned Logistic Regression (`C=0.01`)
+* **Test Classification Accuracy**: **92.00%**
+* **Failure Recall (Detection Rate)**: **93.00%** (Correctly detects 372 out of 400 failing battery packs)
+* **Discriminative Power**: **0.9789 ROC-AUC**
+* **Test F1 Score**: **92.08%**
+* **Model Artifact**: Single self-contained pickle bundle (`best_ev_battery_model.pkl`)
 
 ---
 
-## Key Telemetry Features (12 Features)
+## ⚡ Key Telemetry Features (12 Features)
 
 ### 9 Numerical Features:
-1. `capacity_loss_percent` — State of Health loss (%)
+1. `capacity_loss_percent` — State of Health degradation (%)
 2. `cell_voltage_std` — Cell voltage imbalance (V)
 3. `odometer_km` — Total cumulative mileage (km)
-4. `thermal_runaway_risk` — Thermal runaway risk index (0–100)
+4. `thermal_runaway_risk` — Thermal runaway risk score (0–100)
 5. `cycle_count` — Full charge/discharge cycles
 6. `internal_resistance` — Cell impedance (mΩ)
 7. `vehicle_age_years` — Vehicle operational age (years)
 8. `battery_stress_index` — Composite stress score (0–100)
-9. `battery_capacity_kwh` — Pack energy rating (kWh)
+9. `battery_capacity_kwh` — Pack energy capacity (kWh)
 
 ### 3 Categorical Features:
-1. `battery_chemistry` — Battery cell chemistry (NMC, LFP, NCA, LMO, LTO)
+1. `battery_chemistry` — Cell chemistry (NMC, LFP, NCA, LMO, LTO)
 2. `vehicle_brand` — Automotive OEM brand
-3. `vehicle_type` — Vehicle form factor (SUV, Sedan, Hatchback, Crossover, Truck, Van)
+3. `vehicle_type` — Form factor (SUV, Sedan, Hatchback, Crossover, Truck, Van)
 
 ---
 
-## Web Application Pages
+## 💻 Web Application Pages
 
-1. **Home**: Executive summary, problem rationale, and key failure drivers.
-2. **Battery Failure Prediction**: Live risk classification with interactive sliders powered by `best_ev_battery_model.pkl`.
-3. **Model Performance**: Metrics summary, Confusion Matrix, ROC-AUC Curves, and Feature Coefficients bar chart.
-4. **EDA Dashboard**: Target distribution bar plot, grouped countplots, numerical boxplots, and correlation matrix heatmap.
+1. **Home**: Project summary, key findings, and core telemetry metrics.
+2. **Battery Failure Prediction**: Real-time interactive telemetry risk classification powered by `best_ev_battery_model.pkl`.
+3. **Model Performance**: Accuracy metrics summary, Tuned Model Comparison Table & Bar Chart, Confusion Matrix, and ROC Curves.
+4. **EDA Dashboard**: Target Variable Distribution, Categorical Feature Plots, Telemetry Histograms, and 12-Feature Correlation Heatmap.
 
 ---
 
-## Local Installation & Quickstart
+## 🛠️ Local Installation & Quickstart
 
 ```bash
 # 1. Clone repository
@@ -86,12 +87,7 @@ streamlit run app.py
 
 ---
 
-## Cloud Deployment (Streamlit Community Cloud)
+## ☁️ Live Cloud Deployment
 
-This app is configured for 1-click free cloud hosting:
-
-1. Sign in to [share.streamlit.io](https://share.streamlit.io/) with GitHub.
-2. Click **New app** -> **Use existing repo**.
-3. Select repository: `Aditya4426g/Electric-Vehicle-battery-failure-classification`.
-4. Set Main file path: `app.py`.
-5. Click **Deploy!**
+Access the deployed application live at:
+👉 **[https://electric-vehicle-battery-failure-classification.streamlit.app](https://electric-vehicle-battery-failure-classification.streamlit.app)**
