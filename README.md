@@ -20,7 +20,7 @@ Electric-Vehicle-battery-failure-classification/
 │   └── ev_battery_health_subset.csv       # Telemetry dataset (4,000 records)
 ├── models/
 │   └── best_ev_battery_model.pkl          # Single bundled ML model artifact (Model + Scaler + Encodings)
-├── docs/
+├── nootbook/
 │   └── EV_Battery_Failure.ipynb           # Model development & EDA notebook
 ├── app.py                                 # Streamlit Web Application entrypoint
 ├── model_loader.py                        # Single-pkl preprocessing & inference pipeline
