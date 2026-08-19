@@ -370,7 +370,7 @@ elif page == "Model Performance":
 # ==============================================================================
 elif page == "EDA Dashboard":
     st.markdown("<h1>EDA <span class='accent'>Dashboard</span></h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E;'>Exploratory Data Analysis plots directly corresponding to the notebook cells.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E;'>Exploratory Data Analysis telemetry distributions and correlation heatmaps.</p>", unsafe_allow_html=True)
     st.write("")
 
     if df is None:
@@ -392,15 +392,15 @@ elif page == "EDA Dashboard":
         st.write("")
 
         tab1, tab2, tab3, tab4 = st.tabs([
-            "📊 Target Distribution (Cell 21)", 
-            "🏷️ Categorical Plots (Cells 36-40)", 
-            "📈 Telemetry Distributions (Cells 26-34)", 
-            "🔥 Correlation Heatmap (Cell 45)"
+            "📊 Target Distribution", 
+            "🏷️ Categorical Plots", 
+            "📈 Telemetry Distributions", 
+            "🔥 Correlation Heatmap"
         ])
 
-        # 1. Target Distribution Plot (Notebook Cell 21)
+        # 1. Target Distribution Plot
         with tab1:
-            st.markdown("#### Battery Failure Distribution (Notebook Cell 21)")
+            st.markdown("#### Battery Failure Distribution")
             if 'battery_failure' in df.columns:
                 target_counts = df['battery_failure'].value_counts().reset_index()
                 target_counts.columns = ['Failure_State', 'Count']
@@ -425,9 +425,9 @@ elif page == "EDA Dashboard":
                 )
                 st.plotly_chart(fig_target, use_container_width=True)
 
-        # 2. Categorical vs Failure Plots (Notebook Cells 36, 37, 38, 40)
+        # 2. Categorical vs Failure Plots
         with tab2:
-            st.markdown("#### Categorical Features vs Battery Failure (Notebook Cells 36-40)")
+            st.markdown("#### Categorical Features vs Battery Failure")
             cat_choice = st.selectbox(
                 "Select Categorical Feature:", 
                 ["battery_chemistry", "vehicle_brand", "vehicle_type", "drive_type"],
@@ -456,9 +456,9 @@ elif page == "EDA Dashboard":
                 )
                 st.plotly_chart(fig_cat, use_container_width=True)
 
-        # 3. Telemetry Histograms / Distribution Plots (Notebook Cells 26-34, Cell 41)
+        # 3. Telemetry Histograms / Distribution Plots
         with tab3:
-            st.markdown("#### Telemetry Feature Distributions (Notebook Cells 26-34, Cell 41)")
+            st.markdown("#### Telemetry Feature Distributions")
             num_columns = [
                 "capacity_loss_percent", "cell_voltage_std", "odometer_km",
                 "thermal_runaway_risk", "cycle_count", "internal_resistance",
@@ -486,9 +486,9 @@ elif page == "EDA Dashboard":
                 )
                 st.plotly_chart(fig_hist, use_container_width=True)
 
-        # 4. Correlation Heatmap (Notebook Cell 45 - 12 Numerical Features)
+        # 4. Correlation Heatmap
         with tab4:
-            st.markdown("#### Correlation Heatmap of 12 Numerical Features (Notebook Cell 45)")
+            st.markdown("#### Correlation Heatmap of 12 Numerical Features")
             num_columns_12 = [
                 "cycle_count", "odometer_km", "vehicle_age_years", "capacity_loss_percent",
                 "cell_voltage_std", "internal_resistance", "thermal_runaway_risk",
