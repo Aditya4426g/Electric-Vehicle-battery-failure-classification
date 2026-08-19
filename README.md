@@ -25,8 +25,6 @@ Electric-Vehicle-battery-failure-classification/
 ├── app.py                                 # Streamlit Web Application entrypoint
 ├── model_loader.py                        # Preprocessing & inference pipeline
 ├── requirements.txt                       # Python dependencies
-├── Dockerfile                             # Containerization manifest
-├── docker-compose.yml                     # Multi-container manifest
 ├── .gitignore                             # Git ignore rules
 └── README.md                              # Project documentation
 ```
