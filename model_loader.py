@@ -13,7 +13,21 @@ import numpy as np
 from sklearn.preprocessing import StandardScaler
 
 
-MODEL_PATH = "best_ev_battery_model.pkl"
+def get_model_path():
+    """Returns path to best_ev_battery_model.pkl in models/ or root."""
+    subfolder_path = os.path.join("models", "best_ev_battery_model.pkl")
+    if os.path.exists(subfolder_path):
+        return subfolder_path
+    return "best_ev_battery_model.pkl"
+
+
+def get_dataset_path():
+    """Returns path to ev_battery_health_subset.csv in data/ or root."""
+    subfolder_path = os.path.join("data", "ev_battery_health_subset.csv")
+    if os.path.exists(subfolder_path):
+        return subfolder_path
+    return "ev_battery_health_subset.csv"
+
 
 # Feature definitions matching EV_Battery_Failure.ipynb
 NUMERICAL_FEATURES = [
@@ -27,26 +41,28 @@ CATEGORICAL_FEATURES = ["battery_chemistry", "vehicle_brand", "vehicle_type"]
 _CACHED_SCALER = None
 
 
-def is_model_available(path: str = MODEL_PATH) -> bool:
+def is_model_available(path: str = None) -> bool:
     """Checks whether best_ev_battery_model.pkl exists."""
-    return os.path.exists(path)
+    target_path = path or get_model_path()
+    return os.path.exists(target_path)
 
 
-def load_model(path: str = MODEL_PATH):
+def load_model(path: str = None):
     """
     Attempts to load the ML model from best_ev_battery_model.pkl.
     
     Returns:
         tuple: (model_object, is_available: bool)
     """
-    if not os.path.exists(path):
+    target_path = path or get_model_path()
+    if not os.path.exists(target_path):
         return None, False
 
     try:
-        model = joblib.load(path)
+        model = joblib.load(target_path)
         return model, True
     except Exception as e:
-        print(f"Error loading model from {path}: {e}")
+        print(f"Error loading model from {target_path}: {e}")
         return None, False
 
 
@@ -68,8 +84,9 @@ def predict_failure(model, input_df: pd.DataFrame, reference_df: pd.DataFrame = 
         raise ValueError("Model is not loaded.")
 
     # Load default dataset as reference if not provided
-    if reference_df is None and os.path.exists("ev_battery_health_subset.csv"):
-        reference_df = pd.read_csv("ev_battery_health_subset.csv")
+    dataset_path = get_dataset_path()
+    if reference_df is None and os.path.exists(dataset_path):
+        reference_df = pd.read_csv(dataset_path)
 
     if reference_df is not None:
         ref_X = reference_df[NUMERICAL_FEATURES + CATEGORICAL_FEATURES]

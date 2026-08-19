@@ -121,9 +121,11 @@ st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 # ==============================================================================
 @st.cache_data
 def load_dataset():
-    file_path = "ev_battery_health_subset.csv"
-    if os.path.exists(file_path):
-        return pd.read_csv(file_path)
+    subfolder_path = os.path.join("data", "ev_battery_health_subset.csv")
+    if os.path.exists(subfolder_path):
+        return pd.read_csv(subfolder_path)
+    if os.path.exists("ev_battery_health_subset.csv"):
+        return pd.read_csv("ev_battery_health_subset.csv")
     return None
 
 df = load_dataset()
