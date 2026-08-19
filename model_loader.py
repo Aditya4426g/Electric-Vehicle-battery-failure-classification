@@ -2,8 +2,7 @@
 model_loader.py
 Model Utility for EV Battery Failure Classification
 
-Loads strictly 'best_ev_battery_model.pkl' created by EV_Battery_Failure.ipynb
-and automatically scales numerical features using dataset statistics.
+Loads strictly one single 'best_ev_battery_model.pkl' created by EV_Battery_Failure.ipynb.
 """
 
 import os
@@ -29,16 +28,13 @@ def get_dataset_path():
     return "ev_battery_health_subset.csv"
 
 
-# Feature definitions matching EV_Battery_Failure.ipynb
+# Default Feature definitions matching EV_Battery_Failure.ipynb
 NUMERICAL_FEATURES = [
     "capacity_loss_percent", "cell_voltage_std", "odometer_km",
     "thermal_runaway_risk", "cycle_count", "internal_resistance",
     "vehicle_age_years", "battery_stress_index", "battery_capacity_kwh"
 ]
 CATEGORICAL_FEATURES = ["battery_chemistry", "vehicle_brand", "vehicle_type"]
-
-# Cached fitted scaler in memory
-_CACHED_SCALER = None
 
 
 def is_model_available(path: str = None) -> bool:
@@ -49,59 +45,73 @@ def is_model_available(path: str = None) -> bool:
 
 def load_model(path: str = None):
     """
-    Attempts to load the ML model from best_ev_battery_model.pkl.
+    Attempts to load the ML model artifact from single best_ev_battery_model.pkl.
     
     Returns:
-        tuple: (model_object, is_available: bool)
+        tuple: (artifact_or_model, is_available: bool)
     """
     target_path = path or get_model_path()
     if not os.path.exists(target_path):
         return None, False
 
     try:
-        model = joblib.load(target_path)
-        return model, True
+        artifact = joblib.load(target_path)
+        return artifact, True
     except Exception as e:
         print(f"Error loading model from {target_path}: {e}")
         return None, False
 
 
-def _get_scaler(reference_df: pd.DataFrame):
-    """Returns or fits standard scaler in memory."""
-    global _CACHED_SCALER
-    if _CACHED_SCALER is None and reference_df is not None:
-        _CACHED_SCALER = StandardScaler()
-        _CACHED_SCALER.fit(reference_df[NUMERICAL_FEATURES].fillna(reference_df[NUMERICAL_FEATURES].median()))
-    return _CACHED_SCALER
-
-
-def predict_failure(model, input_df: pd.DataFrame, reference_df: pd.DataFrame = None):
+def predict_failure(model_or_artifact, input_df: pd.DataFrame, reference_df: pd.DataFrame = None):
     """
-    Executes prediction using best_ev_battery_model.pkl.
-    Preprocesses input numerical features with StandardScaler and one-hot encodes categorical attributes.
+    Executes prediction using single best_ev_battery_model.pkl artifact.
+    Extracts model, scaler, and feature definitions from single pickle file.
     """
-    if model is None:
+    if model_or_artifact is None:
         raise ValueError("Model is not loaded.")
 
-    # Load default dataset as reference if not provided
-    dataset_path = get_dataset_path()
-    if reference_df is None and os.path.exists(dataset_path):
-        reference_df = pd.read_csv(dataset_path)
-
-    if reference_df is not None:
-        ref_X = reference_df[NUMERICAL_FEATURES + CATEGORICAL_FEATURES]
-        ref_encoded = pd.get_dummies(ref_X, columns=CATEGORICAL_FEATURES, drop_first=True)
-        target_columns = ref_encoded.columns
+    # Unpack single pickle dictionary or fallback to raw model
+    if isinstance(model_or_artifact, dict):
+        model = model_or_artifact.get("model")
+        scaler = model_or_artifact.get("scaler")
+        numerical_features = model_or_artifact.get("numerical_features", NUMERICAL_FEATURES)
+        categorical_features = model_or_artifact.get("categorical_features", CATEGORICAL_FEATURES)
+        target_columns = model_or_artifact.get("trained_columns")
     else:
+        model = model_or_artifact
+        scaler = None
+        numerical_features = NUMERICAL_FEATURES
+        categorical_features = CATEGORICAL_FEATURES
         target_columns = None
 
-    scaler = _get_scaler(reference_df)
+    if model is None:
+        raise ValueError("Invalid model artifact inside best_ev_battery_model.pkl")
+
+    # Load default dataset as reference for fallback column matching if needed
+    if target_columns is None:
+        dataset_path = get_dataset_path()
+        if reference_df is None and os.path.exists(dataset_path):
+            reference_df = pd.read_csv(dataset_path)
+
+        if reference_df is not None:
+            ref_X = reference_df[numerical_features + categorical_features]
+            ref_encoded = pd.get_dummies(ref_X, columns=categorical_features, drop_first=True)
+            target_columns = ref_encoded.columns
+
+    # Fit fallback scaler if not bundled in single pickle
+    if scaler is None:
+        dataset_path = get_dataset_path()
+        if reference_df is None and os.path.exists(dataset_path):
+            reference_df = pd.read_csv(dataset_path)
+        if reference_df is not None:
+            scaler = StandardScaler()
+            scaler.fit(reference_df[numerical_features].fillna(reference_df[numerical_features].median()))
 
     # Copy input DataFrame
-    input_X = input_df[[c for c in NUMERICAL_FEATURES + CATEGORICAL_FEATURES if c in input_df.columns]].copy()
+    input_X = input_df[[c for c in numerical_features + categorical_features if c in input_df.columns]].copy()
     
     # One-Hot Encoding on categorical columns
-    input_encoded = pd.get_dummies(input_X, columns=CATEGORICAL_FEATURES, drop_first=True)
+    input_encoded = pd.get_dummies(input_X, columns=categorical_features, drop_first=True)
 
     if target_columns is not None:
         input_encoded = input_encoded.reindex(columns=target_columns, fill_value=0)
@@ -110,7 +120,7 @@ def predict_failure(model, input_df: pd.DataFrame, reference_df: pd.DataFrame = 
 
     # Scale numerical features
     if scaler is not None:
-        existing_num = [c for c in NUMERICAL_FEATURES if c in input_encoded.columns]
+        existing_num = [c for c in numerical_features if c in input_encoded.columns]
         input_encoded[existing_num] = scaler.transform(input_encoded[existing_num])
 
     # Predict class & failure probability
