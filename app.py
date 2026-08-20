@@ -4,7 +4,7 @@ app.py - EV Battery Failure Classification Web Application
 Uses graphs, charts, and telemetry metrics directly matching EV_Battery_Failure.ipynb.
 Simple, clean UI with clear text explanations across 4 pages:
 1. Home (Project Summary & Key Findings)
-2. Battery Failure Prediction (Live ML Prediction using best_ev_battery_model.pkl)
+2. Battery Failure Prediction (Live ML Prediction using single best_ev_battery_model.pkl)
 3. Model Performance (Model Comparison, Confusion Matrix, ROC Curves, Feature Drivers)
 4. EDA Dashboard (Target Distribution, Categorical Plots, Telemetry Histograms, Correlation Heatmap)
 """
@@ -182,13 +182,13 @@ if page == "Home":
 # ==============================================================================
 elif page == "Battery Failure Prediction":
     st.markdown("<h1>Battery Failure <span class='accent'>Prediction</span></h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E;'>Enter battery pack telemetry values below to estimate failure risk.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E;'>Enter battery pack telemetry values below to estimate failure risk using single <code>best_ev_battery_model.pkl</code>.</p>", unsafe_allow_html=True)
     st.write("")
 
     artifact, is_available = model_loader.load_model()
 
     if not is_available:
-        st.error("Model file `best_ev_battery_model.pkl` unavailable. Please run the notebook to generate the model artifact.")
+        st.error("Model artifact `best_ev_battery_model.pkl` unavailable. Please run the notebook to generate the single model pickle.")
 
     st.markdown("### Enter Telemetry Values")
     with st.form("prediction_form"):
@@ -244,9 +244,9 @@ elif page == "Battery Failure Prediction":
 
                 st.write("")
                 if pred == 1:
-                    st.error("⚠️ **HIGH RISK: BATTERY FAILURE PREDICTED**")
+                    st.error(f"⚠️ **HIGH RISK: BATTERY FAILURE PREDICTED** (Estimated Failure Probability: **{prob:.2%}**)")
                 else:
-                    st.success("✅ **NORMAL: BATTERY IS HEALTHY**")
+                    st.success(f"✅ **NORMAL: BATTERY IS HEALTHY** (Estimated Failure Probability: **{prob:.2%}**)")
             except Exception as ex:
                 st.error(f"Prediction Error: {ex}")
 
@@ -256,7 +256,7 @@ elif page == "Battery Failure Prediction":
 # ==============================================================================
 elif page == "Model Performance":
     st.markdown("<h1>Model <span class='accent'>Performance</span></h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E;'>Model accuracy comparisons, Confusion Matrix, ROC curves, and feature importance drivers directly from the notebook.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E;'>Model evaluation metrics, Tuned Model Comparisons, Confusion Matrix, ROC curves, and Feature Drivers.</p>", unsafe_allow_html=True)
     st.write("")
 
     # Test Metrics Summary
@@ -285,25 +285,31 @@ elif page == "Model Performance":
             "Decision Tree"
         ],
         "CV F1 Score": [0.9180, 0.9166, 0.9149, 0.9134, 0.9056, 0.8995],
-        "Test Accuracy": ["92.00%", "92.25%", "92.00%", "92.00%", "90.00%", "88.00%"],
-        "Test Precision": ["91.18%", "91.18%", "92.00%", "91.18%", "88.57%", "87.19%"],
-        "Test Recall": ["93.00%", "93.00%", "92.00%", "93.00%", "91.75%", "89.12%"],
-        "Test F1 Score": ["92.08%", "92.08%", "92.00%", "92.08%", "90.13%", "88.14%"],
+        "Test Accuracy": [0.9200, 0.9225, 0.9200, 0.9200, 0.9000, 0.8800],
+        "Test Precision": [0.9118, 0.9118, 0.9200, 0.9118, 0.8857, 0.8719],
+        "Test Recall": [0.9300, 0.9300, 0.9200, 0.9300, 0.9175, 0.8912],
+        "Test F1 Score": [0.9208, 0.9208, 0.9200, 0.9208, 0.9013, 0.8814],
         "Test ROC-AUC": [0.9789, 0.9783, 0.9768, 0.9745, 0.9482, 0.8800]
     })
-    st.dataframe(comparison_df, use_container_width=True)
+    
+    # Display table formatted
+    display_comp_df = comparison_df.copy()
+    for col in ["Test Accuracy", "Test Precision", "Test Recall", "Test F1 Score"]:
+        display_comp_df[col] = display_comp_df[col].apply(lambda v: f"{v:.2%}")
+    st.dataframe(display_comp_df, use_container_width=True)
 
     st.write("")
     
-    # 1. Model Comparison Accuracy Bar Chart (Notebook Cell 90 / Cell 77)
+    # 1. Model Comparison Accuracy Bar Chart
     st.markdown("### 📊 Model Comparison - Accuracy Bar Chart")
     fig_comp_bar = px.bar(
         comparison_df,
         x="Model Algorithm",
-        y=[float(val.replace("%", ""))/100 for val in comparison_df["Test Accuracy"]],
-        text=comparison_df["Test Accuracy"],
-        title="Model Accuracy Comparison (Tuned Models)",
-        color="Model Algorithm",
+        y="Test Accuracy",
+        text=[f"{v:.2%}" for v in comparison_df["Test Accuracy"]],
+        title="Tuned Models Test Accuracy Comparison",
+        color="Test Accuracy",
+        color_continuous_scale="Blues",
         template="plotly_dark"
     )
     fig_comp_bar.update_layout(
@@ -315,13 +321,13 @@ elif page == "Model Performance":
         showlegend=False,
         height=380
     )
-    fig_comp_bar.update_traces(textposition='outside')
+    fig_comp_bar.update_traces(textposition='outside', marker_line_color='#FF3B30', marker_line_width=1.5)
     st.plotly_chart(fig_comp_bar, use_container_width=True)
 
     st.write("")
     col_cm, col_roc = st.columns(2)
     
-    # 2. Confusion Matrix (Notebook Cell 94)
+    # 2. Confusion Matrix Heatmap
     with col_cm:
         st.markdown("### 🎯 Confusion Matrix (Final Model)")
         cm_data = [[364, 36], [28, 372]]
@@ -331,18 +337,17 @@ elif page == "Model Performance":
             y=['Actual Healthy (0)', 'Actual Failed (1)'],
             text_auto=True,
             title="Final Model Confusion Matrix (Tuned Logistic Regression)",
-            color_continuous_scale="Blues",
+            color_continuous_scale="Tealgrn",
             template="plotly_dark"
         )
-        fig_cm.update_layout(paper_bgcolor="#1E222D", plot_bgcolor="#1E222D", height=360)
+        fig_cm.update_layout(paper_bgcolor="#1E222D", plot_bgcolor="#1E222D", height=380)
         st.plotly_chart(fig_cm, use_container_width=True)
 
-    # 3. ROC Curves (Notebook Cell 95)
+    # 3. ROC Curves
     with col_roc:
         st.markdown("### 📈 ROC Curves of Tuned Models")
         fig_roc = go.Figure()
         
-        # Approximate ROC Curves from notebook evaluation
         fpr_lr = [0.0, 0.02, 0.05, 0.09, 0.18, 0.35, 0.65, 1.0]
         tpr_lr = [0.0, 0.77, 0.88, 0.93, 0.97, 0.99, 1.0, 1.0]
         
@@ -358,15 +363,50 @@ elif page == "Model Performance":
             template="plotly_dark",
             paper_bgcolor="#1E222D",
             plot_bgcolor="#1E222D",
-            height=360
+            height=380
         )
         st.plotly_chart(fig_roc, use_container_width=True)
 
-
+    st.write("")
+    
+    # 4. Feature Drivers / Coefficients Chart (Extracted from single best_ev_battery_model.pkl)
+    st.markdown("### 🧬 Feature Importance & Risk Drivers")
+    artifact, avail = model_loader.load_model()
+    if avail and isinstance(artifact, dict) and "model" in artifact:
+        model = artifact["model"]
+        cols = artifact.get("trained_columns", [])
+        
+        if hasattr(model, "coef_") and cols:
+            coefs = model.coef_[0]
+            fi_df = pd.DataFrame({"Feature": cols, "Coefficient": coefs})
+            fi_df["Abs_Coef"] = fi_df["Coefficient"].abs()
+            fi_df = fi_df.sort_values(by="Abs_Coef", ascending=True).tail(12)
+            fi_df["Risk Impact"] = fi_df["Coefficient"].apply(lambda x: "Increases Risk (+)" if x > 0 else "Reduces Risk (-)")
+            
+            fig_fi = px.bar(
+                fi_df,
+                y="Feature",
+                x="Coefficient",
+                color="Risk Impact",
+                orientation="h",
+                text=[f"{v:+.3f}" for v in fi_df["Coefficient"]],
+                title="Model Feature Coefficients (Tuned Logistic Regression)",
+                template="plotly_dark",
+                color_discrete_map={"Increases Risk (+)": "#FF3B30", "Reduces Risk (-)": "#30D158"}
+            )
+            fig_fi.update_layout(
+                xaxis_title="Coefficient Value (Log-Odds Impact on Battery Failure)",
+                yaxis_title="Telemetry Feature",
+                paper_bgcolor="#1E222D",
+                plot_bgcolor="#1E222D",
+                height=420
+            )
+            fig_fi.update_traces(textposition="outside")
+            st.plotly_chart(fig_fi, use_container_width=True)
 
 
 # ==============================================================================
-# PAGE 4: EDA DASHBOARD (STRICTLY NOTEBOOK PLOTS)
+# PAGE 4: EDA DASHBOARD
 # ==============================================================================
 elif page == "EDA Dashboard":
     st.markdown("<h1>EDA <span class='accent'>Dashboard</span></h1>", unsafe_allow_html=True)
@@ -400,28 +440,30 @@ elif page == "EDA Dashboard":
 
         # 1. Target Distribution Plot
         with tab1:
-            st.markdown("#### Battery Failure Distribution")
+            st.markdown("#### Battery Failure Target Distribution")
             if 'battery_failure' in df.columns:
                 target_counts = df['battery_failure'].value_counts().reset_index()
                 target_counts.columns = ['Failure_State', 'Count']
                 target_counts['Status'] = target_counts['Failure_State'].map({0: 'Healthy (0)', 1: 'Failed (1)'})
+                target_counts['Percentage'] = target_counts['Count'] / target_counts['Count'].sum() * 100
                 
                 fig_target = px.bar(
                     target_counts,
                     x='Status',
                     y='Count',
-                    text='Count',
-                    title='Battery Failure Target Variable Distribution',
+                    text=[f"{cnt:,} ({pct:.1f}%)" for cnt, pct in zip(target_counts['Count'], target_counts['Percentage'])],
+                    title='Battery Failure Target Distribution (Balanced 50/50)',
                     color='Status',
-                    color_discrete_map={'Healthy (0)': '#2ecc71', 'Failed (1)': '#e74c3c'},
+                    color_discrete_map={'Healthy (0)': '#3FB950', 'Failed (1)': '#FF3B30'},
                     template="plotly_dark"
                 )
-                fig_target.update_traces(texttemplate='%{text:,}', textposition='outside')
+                fig_target.update_traces(textposition='outside', marker_line_color='#FFFFFF', marker_line_width=1)
                 fig_target.update_layout(
                     xaxis_title="Battery Status (0 = Healthy, 1 = Failed)",
                     yaxis_title="Number of Vehicles",
                     paper_bgcolor="#1E222D",
-                    plot_bgcolor="#1E222D"
+                    plot_bgcolor="#1E222D",
+                    height=400
                 )
                 st.plotly_chart(fig_target, use_container_width=True)
 
@@ -444,15 +486,18 @@ elif page == "EDA Dashboard":
                     y='Count',
                     color='Battery Status',
                     barmode='group',
-                    title=f"{cat_choice.replace('_', ' ').title()} vs Battery Failure",
-                    color_discrete_map={'Healthy (0)': '#2ecc71', 'Failed (1)': '#e74c3c'},
+                    text='Count',
+                    title=f"{cat_choice.replace('_', ' ').title()} Breakdown by Battery Health",
+                    color_discrete_map={'Healthy (0)': '#3FB950', 'Failed (1)': '#FF3B30'},
                     template="plotly_dark"
                 )
+                fig_cat.update_traces(textposition='outside')
                 fig_cat.update_layout(
                     xaxis_title=cat_choice.replace('_', ' ').title(),
                     yaxis_title="Number of Vehicles",
                     paper_bgcolor="#1E222D",
-                    plot_bgcolor="#1E222D"
+                    plot_bgcolor="#1E222D",
+                    height=420
                 )
                 st.plotly_chart(fig_cat, use_container_width=True)
 
@@ -472,17 +517,18 @@ elif page == "EDA Dashboard":
                 fig_hist = px.histogram(
                     df.dropna(subset=[selected_feature]),
                     x=selected_feature,
-                    nbins=30,
-                    marginal="rug",
-                    title=f"Distribution of {selected_feature.replace('_', ' ').title()}",
-                    color_discrete_sequence=["#1f77b4"],
+                    nbins=35,
+                    marginal="box",
+                    title=f"Telemetry Distribution of {selected_feature.replace('_', ' ').title()}",
+                    color_discrete_sequence=["#58A6FF"],
                     template="plotly_dark"
                 )
                 fig_hist.update_layout(
                     xaxis_title=selected_feature.replace('_', ' ').title(),
                     yaxis_title="Frequency",
                     paper_bgcolor="#1E222D",
-                    plot_bgcolor="#1E222D"
+                    plot_bgcolor="#1E222D",
+                    height=420
                 )
                 st.plotly_chart(fig_hist, use_container_width=True)
 
@@ -501,7 +547,7 @@ elif page == "EDA Dashboard":
                 fig_corr = px.imshow(
                     corr,
                     text_auto=".2f",
-                    title="Pearson Correlation Heatmap of 12 Numerical Features",
+                    title="Pearson Correlation Heatmap of 12 Numerical Telemetry Features",
                     color_continuous_scale="RdBu_r",
                     zmin=-1,
                     zmax=1,

@@ -13,18 +13,33 @@ from sklearn.preprocessing import StandardScaler
 
 
 def get_model_path():
-    """Returns path to best_ev_battery_model.pkl in models/ or root."""
-    subfolder_path = os.path.join("models", "best_ev_battery_model.pkl")
-    if os.path.exists(subfolder_path):
-        return subfolder_path
+    """Returns path to best_ev_battery_model.pkl in models/, root, or notebook dirs."""
+    possible_paths = [
+        os.path.join("models", "best_ev_battery_model.pkl"),
+        "best_ev_battery_model.pkl",
+        os.path.join("nootbook", "best_ev_battery_model.pkl"),
+        os.path.join("nootbook", "models", "best_ev_battery_model.pkl"),
+        os.path.join("..", "models", "best_ev_battery_model.pkl"),
+        os.path.join("..", "best_ev_battery_model.pkl")
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
     return "best_ev_battery_model.pkl"
 
 
 def get_dataset_path():
-    """Returns path to ev_battery_health_subset.csv in data/ or root."""
-    subfolder_path = os.path.join("data", "ev_battery_health_subset.csv")
-    if os.path.exists(subfolder_path):
-        return subfolder_path
+    """Returns path to ev_battery_health_subset.csv in data/, root, or notebook dirs."""
+    possible_paths = [
+        os.path.join("data", "ev_battery_health_subset.csv"),
+        "ev_battery_health_subset.csv",
+        os.path.join("nootbook", "data", "ev_battery_health_subset.csv"),
+        os.path.join("..", "data", "ev_battery_health_subset.csv"),
+        os.path.join("..", "ev_battery_health_subset.csv")
+    ]
+    for path in possible_paths:
+        if os.path.exists(path):
+            return path
     return "ev_battery_health_subset.csv"
 
 
@@ -40,18 +55,18 @@ CATEGORICAL_FEATURES = ["battery_chemistry", "vehicle_brand", "vehicle_type"]
 def is_model_available(path: str = None) -> bool:
     """Checks whether best_ev_battery_model.pkl exists."""
     target_path = path or get_model_path()
-    return os.path.exists(target_path)
+    return os.path.exists(target_path) if target_path else False
 
 
 def load_model(path: str = None):
     """
-    Attempts to load the ML model artifact from single best_ev_battery_model.pkl.
+    Attempts to load the single ML model artifact dictionary from best_ev_battery_model.pkl.
     
     Returns:
-        tuple: (artifact_or_model, is_available: bool)
+        tuple: (artifact_dict, is_available: bool)
     """
     target_path = path or get_model_path()
-    if not os.path.exists(target_path):
+    if not target_path or not os.path.exists(target_path):
         return None, False
 
     try:
@@ -64,13 +79,12 @@ def load_model(path: str = None):
 
 def predict_failure(model_or_artifact, input_df: pd.DataFrame, reference_df: pd.DataFrame = None):
     """
-    Executes prediction using single best_ev_battery_model.pkl artifact.
+    Executes prediction using single best_ev_battery_model.pkl dictionary artifact.
     Extracts model, scaler, and feature definitions from single pickle file.
     """
     if model_or_artifact is None:
         raise ValueError("Model is not loaded.")
 
-    # Unpack single pickle dictionary or fallback to raw model
     if isinstance(model_or_artifact, dict):
         model = model_or_artifact.get("model")
         scaler = model_or_artifact.get("scaler")
@@ -90,7 +104,7 @@ def predict_failure(model_or_artifact, input_df: pd.DataFrame, reference_df: pd.
     # Load default dataset as reference for fallback column matching if needed
     if target_columns is None:
         dataset_path = get_dataset_path()
-        if reference_df is None and os.path.exists(dataset_path):
+        if reference_df is None and dataset_path and os.path.exists(dataset_path):
             reference_df = pd.read_csv(dataset_path)
 
         if reference_df is not None:
@@ -98,10 +112,10 @@ def predict_failure(model_or_artifact, input_df: pd.DataFrame, reference_df: pd.
             ref_encoded = pd.get_dummies(ref_X, columns=categorical_features, drop_first=True)
             target_columns = ref_encoded.columns
 
-    # Fit fallback scaler if not bundled in single pickle
+    # Fit fallback scaler if missing in artifact
     if scaler is None:
         dataset_path = get_dataset_path()
-        if reference_df is None and os.path.exists(dataset_path):
+        if reference_df is None and dataset_path and os.path.exists(dataset_path):
             reference_df = pd.read_csv(dataset_path)
         if reference_df is not None:
             scaler = StandardScaler()
