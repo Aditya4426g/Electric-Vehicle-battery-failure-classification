@@ -182,7 +182,7 @@ if page == "Home":
 # ==============================================================================
 elif page == "Battery Failure Prediction":
     st.markdown("<h1>Battery Failure <span class='accent'>Prediction</span></h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E;'>Enter battery pack telemetry values below to estimate failure risk using single <code>best_ev_battery_model.pkl</code>.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E;'>Enter battery pack telemetry values below to estimate failure risk.</p>", unsafe_allow_html=True)
     st.write("")
 
     artifact, is_available = model_loader.load_model()
