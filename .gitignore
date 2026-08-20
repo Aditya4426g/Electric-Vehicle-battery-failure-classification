@@ -10,3 +10,7 @@ ENV/
 
 # Antigravity IDE scratch files
 scratch/
+.virtual_documents/
+anaconda_projects/
+.ipynb_checkpoints/
+

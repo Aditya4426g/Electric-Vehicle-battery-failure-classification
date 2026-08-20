@@ -244,9 +244,9 @@ elif page == "Battery Failure Prediction":
 
                 st.write("")
                 if pred == 1:
-                    st.error(f"⚠️ **HIGH RISK: BATTERY FAILURE PREDICTED** (Estimated Failure Probability: **{prob:.2%}**)")
+                    st.error("⚠️ **HIGH RISK: BATTERY FAILURE PREDICTED**")
                 else:
-                    st.success(f"✅ **NORMAL: BATTERY IS HEALTHY** (Estimated Failure Probability: **{prob:.2%}**)")
+                    st.success("✅ **NORMAL: BATTERY IS HEALTHY**")
             except Exception as ex:
                 st.error(f"Prediction Error: {ex}")
 
