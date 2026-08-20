@@ -292,11 +292,16 @@ elif page == "Model Performance":
         "Test ROC-AUC": [0.9789, 0.9783, 0.9768, 0.9745, 0.9482, 0.8800]
     })
     
-    # Display table formatted
-    display_comp_df = comparison_df.copy()
-    for col in ["Test Accuracy", "Test Precision", "Test Recall", "Test F1 Score"]:
-        display_comp_df[col] = display_comp_df[col].apply(lambda v: f"{v:.2%}")
-    st.dataframe(display_comp_df, use_container_width=True)
+    # Format table for presentation without index
+    formatted_comp_df = comparison_df.copy()
+    formatted_comp_df["CV F1 Score"] = formatted_comp_df["CV F1 Score"].apply(lambda v: f"{v:.4f}")
+    formatted_comp_df["Test Accuracy"] = formatted_comp_df["Test Accuracy"].apply(lambda v: f"{v:.2%}")
+    formatted_comp_df["Test Precision"] = formatted_comp_df["Test Precision"].apply(lambda v: f"{v:.2%}")
+    formatted_comp_df["Test Recall"] = formatted_comp_df["Test Recall"].apply(lambda v: f"{v:.2%}")
+    formatted_comp_df["Test F1 Score"] = formatted_comp_df["Test F1 Score"].apply(lambda v: f"{v:.2%}")
+    formatted_comp_df["Test ROC-AUC"] = formatted_comp_df["Test ROC-AUC"].apply(lambda v: f"{v:.4f}")
+    
+    st.dataframe(formatted_comp_df, hide_index=True, use_container_width=True)
 
     st.write("")
     
@@ -308,20 +313,20 @@ elif page == "Model Performance":
         y="Test Accuracy",
         text=[f"{v:.2%}" for v in comparison_df["Test Accuracy"]],
         title="Tuned Models Test Accuracy Comparison",
-        color="Test Accuracy",
-        color_continuous_scale="Blues",
+        color="Model Algorithm",
         template="plotly_dark"
     )
     fig_comp_bar.update_layout(
-        yaxis_range=[0.80, 1.00],
+        yaxis_range=[0, 1.05],
         xaxis_title="Machine Learning Models",
         yaxis_title="Test Accuracy",
         paper_bgcolor="#1E222D",
         plot_bgcolor="#1E222D",
         showlegend=False,
-        height=380
+        height=400
     )
-    fig_comp_bar.update_traces(textposition='outside', marker_line_color='#FF3B30', marker_line_width=1.5)
+    fig_comp_bar.update_yaxes(tickformat=".0%")
+    fig_comp_bar.update_traces(textposition='outside')
     st.plotly_chart(fig_comp_bar, use_container_width=True)
 
     st.write("")
@@ -337,10 +342,15 @@ elif page == "Model Performance":
             y=['Actual Healthy (0)', 'Actual Failed (1)'],
             text_auto=True,
             title="Final Model Confusion Matrix (Tuned Logistic Regression)",
-            color_continuous_scale="Tealgrn",
+            color_continuous_scale="Blues",
             template="plotly_dark"
         )
-        fig_cm.update_layout(paper_bgcolor="#1E222D", plot_bgcolor="#1E222D", height=380)
+        fig_cm.update_layout(
+            paper_bgcolor="#1E222D",
+            plot_bgcolor="#1E222D",
+            height=380
+        )
+        fig_cm.update_yaxes(autorange="reversed")
         st.plotly_chart(fig_cm, use_container_width=True)
 
     # 3. ROC Curves
