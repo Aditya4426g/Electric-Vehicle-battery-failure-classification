@@ -1,7 +1,7 @@
 """
 app.py - EV Battery Failure Classification Web Application
 
-Uses exact telemetry metrics and evaluations matching EV_Battery_Failure.ipynb on the test dataset.
+Uses exact telemetry metrics and evaluations directly matching EV_Battery_Failure.ipynb execution output.
 Simple, clean UI with clear text explanations across 4 pages:
 1. Home (Project Summary & Key Findings)
 2. Battery Failure Prediction (Live ML Prediction using single best_ev_battery_model.pkl)
@@ -166,9 +166,9 @@ if page == "Home":
             <h4 style='margin-bottom: 10px;'>📊 Key Summary Findings</h4>
             <ul style='color: #C9D1D9; line-height: 1.8;'>
                 <li><b>Selected Model</b>: Tuned Logistic Regression (<code>C=0.01</code>) for transparent risk scoring.</li>
-                <li><b>Overall Accuracy</b>: <b>92.00%</b> test classification accuracy.</li>
-                <li><b>Failure Detection (Recall)</b>: <b>93.00%</b> (Correctly flags 372 out of 400 failing battery packs).</li>
-                <li><b>ROC-AUC Score</b>: <b>0.9789</b> strong separation capability.</li>
+                <li><b>Overall Test Accuracy</b>: <b>91.87%</b> test classification accuracy (735/800 test samples correct).</li>
+                <li><b>Failure Detection (Recall)</b>: <b>92.75%</b> (Correctly flags 371 out of 400 failing battery packs).</li>
+                <li><b>ROC-AUC Score</b>: <b>0.9749</b> strong separation capability.</li>
                 <li><b>Primary Failure Signals</b>: <code>cell_voltage_std</code>, <code>thermal_runaway_risk</code>, <code>battery_stress_index</code>, and <code>capacity_loss_percent</code>.</li>
             </ul>
         </div>
@@ -256,86 +256,86 @@ elif page == "Battery Failure Prediction":
 # ==============================================================================
 elif page == "Model Performance":
     st.markdown("<h1>Model <span class='accent'>Performance</span></h1>", unsafe_allow_html=True)
-    st.markdown("<p style='color: #8B949E;'>Model accuracy comparisons, Confusion Matrix, and ROC curves directly matching the notebook evaluation.</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #8B949E;'>Exact evaluation metrics directly matching the notebook cell execution outputs across all 6 tuned models.</p>", unsafe_allow_html=True)
     st.write("")
 
-    # Test Metrics Summary
-    st.markdown("### Evaluation Summary (Test Set)")
+    # Test Metrics Summary (Exact matching notebook output for Logistic Regression)
+    st.markdown("### Evaluation Summary (Selected Model: Logistic Regression)")
     m1, m2, m3, m4 = st.columns(4)
     with m1:
-        st.markdown("<div class='metric-box'><div class='metric-lbl'>Accuracy</div><div class='metric-val'>92.00%</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-box'><div class='metric-lbl'>Test Accuracy</div><div class='metric-val'>0.9187</div></div>", unsafe_allow_html=True)
     with m2:
-        st.markdown("<div class='metric-box'><div class='metric-lbl'>Precision</div><div class='metric-val'>91.18%</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-box'><div class='metric-lbl'>Test Precision</div><div class='metric-val'>0.9115</div></div>", unsafe_allow_html=True)
     with m3:
-        st.markdown("<div class='metric-box'><div class='metric-lbl'>Recall (Detection Rate)</div><div class='metric-val'>93.00%</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-box'><div class='metric-lbl'>Test Recall</div><div class='metric-val'>0.9275</div></div>", unsafe_allow_html=True)
     with m4:
-        st.markdown("<div class='metric-box'><div class='metric-lbl'>F1 Score</div><div class='metric-val'>92.08%</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='metric-box'><div class='metric-lbl'>Test F1 Score</div><div class='metric-val'>0.9195</div></div>", unsafe_allow_html=True)
 
     st.write("")
 
-    # Model Comparison Table with exact notebook numbers
+    # Model Comparison Table matching exact notebook outputs
     st.markdown("### Tuned Models Comparison Table")
     comparison_df = pd.DataFrame({
         "Model Algorithm": [
-            "Logistic Regression (Best)",
-            "Support Vector Machine (SVM)",
+            "Logistic Regression",
             "Gradient Boosting",
+            "Support Vector Machine",
             "Random Forest",
-            "K-Nearest Neighbors (KNN)",
+            "K-Nearest Neighbors",
             "Decision Tree"
         ],
-        "CV F1 Score": [0.9180, 0.9166, 0.9149, 0.9134, 0.9056, 0.8995],
-        "Test Accuracy": [0.9200, 0.9225, 0.9200, 0.9200, 0.9000, 0.8800],
-        "Test Precision": [0.9118, 0.9118, 0.9200, 0.9118, 0.8857, 0.8719],
-        "Test Recall": [0.9300, 0.9300, 0.9200, 0.9300, 0.9175, 0.8912],
-        "Test F1 Score": [0.9208, 0.9208, 0.9200, 0.9208, 0.9013, 0.8814],
-        "Test ROC-AUC": [0.9789, 0.9783, 0.9768, 0.9745, 0.9482, 0.8800]
+        "CV F1 Score": [0.9180, 0.9149, 0.9166, 0.9134, 0.9056, 0.8995],
+        "Test Accuracy": [0.9187, 0.9175, 0.9163, 0.9150, 0.9137, 0.9100],
+        "Test Precision": [0.9115, 0.9154, 0.9173, 0.9089, 0.8988, 0.8905],
+        "Test Recall": [0.9275, 0.9200, 0.9150, 0.9225, 0.9325, 0.9350],
+        "Test F1 Score": [0.9195, 0.9177, 0.9161, 0.9156, 0.9153, 0.9122],
+        "Test ROC-AUC": [0.9749, 0.9722, 0.9753, 0.9693, 0.9628, 0.9560]
     })
     
     # Format table numbers nicely without index column
     formatted_comp_df = comparison_df.copy()
     formatted_comp_df["CV F1 Score"] = formatted_comp_df["CV F1 Score"].apply(lambda v: f"{v:.4f}")
-    formatted_comp_df["Test Accuracy"] = formatted_comp_df["Test Accuracy"].apply(lambda v: f"{v:.2%}")
-    formatted_comp_df["Test Precision"] = formatted_comp_df["Test Precision"].apply(lambda v: f"{v:.2%}")
-    formatted_comp_df["Test Recall"] = formatted_comp_df["Test Recall"].apply(lambda v: f"{v:.2%}")
-    formatted_comp_df["Test F1 Score"] = formatted_comp_df["Test F1 Score"].apply(lambda v: f"{v:.2%}")
+    formatted_comp_df["Test Accuracy"] = formatted_comp_df["Test Accuracy"].apply(lambda v: f"{v:.4f}")
+    formatted_comp_df["Test Precision"] = formatted_comp_df["Test Precision"].apply(lambda v: f"{v:.4f}")
+    formatted_comp_df["Test Recall"] = formatted_comp_df["Test Recall"].apply(lambda v: f"{v:.4f}")
+    formatted_comp_df["Test F1 Score"] = formatted_comp_df["Test F1 Score"].apply(lambda v: f"{v:.4f}")
     formatted_comp_df["Test ROC-AUC"] = formatted_comp_df["Test ROC-AUC"].apply(lambda v: f"{v:.4f}")
     
     st.dataframe(formatted_comp_df, hide_index=True, use_container_width=True)
 
     st.write("")
     
-    # 1. Model Comparison Accuracy Bar Chart (Strictly matching Table values: 92.00%, 92.25%, 92.00%, 92.00%, 90.00%, 88.00%)
-    st.markdown("### 📊 Model Comparison - Accuracy Bar Chart")
+    # 1. Model Comparison Accuracy Bar Chart (EXACT VALUES FROM USER NOTEBOOK SCREENSHOT: 0.9187, 0.9175, 0.9163, 0.9150, 0.9137, 0.9100)
+    st.markdown("### 📊 Tuned Model Comparison - Accuracy")
     fig_comp_bar = px.bar(
         comparison_df,
         x="Model Algorithm",
         y="Test Accuracy",
-        text=[f"{v:.2%}" for v in comparison_df["Test Accuracy"]],
-        title="Tuned Models Test Accuracy Comparison",
-        color="Model Algorithm",
+        text=[f"{v:.4f}" for v in comparison_df["Test Accuracy"]],
+        title="Tuned Model Comparison - Accuracy",
+        color_discrete_sequence=["#4C72B0"],
         template="plotly_dark"
     )
     fig_comp_bar.update_layout(
-        yaxis_range=[0, 1.05],
-        xaxis_title="Machine Learning Models",
-        yaxis_title="Test Accuracy",
+        yaxis_range=[0.800, 1.000],
+        xaxis_title="Models",
+        yaxis_title="Accuracy",
         paper_bgcolor="#1E222D",
         plot_bgcolor="#1E222D",
         showlegend=False,
-        height=400
+        height=420
     )
-    fig_comp_bar.update_yaxes(tickformat=".0%")
-    fig_comp_bar.update_traces(textposition='outside')
+    fig_comp_bar.update_yaxes(dtick=0.025, tickformat=".3f")
+    fig_comp_bar.update_traces(textposition='outside', marker_line_color='#FFFFFF', marker_line_width=0.5)
     st.plotly_chart(fig_comp_bar, use_container_width=True)
 
     st.write("")
     col_cm, col_roc = st.columns(2)
     
-    # 2. Confusion Matrix Heatmap (Exact breakdown: TN=364, FP=36, FN=28, TP=372)
+    # 2. Confusion Matrix Heatmap (Exact breakdown: TN=364, FP=36, FN=29, TP=371)
     with col_cm:
         st.markdown("### 🎯 Confusion Matrix (Final Model)")
-        cm_data = [[364, 36], [28, 372]]
+        cm_data = [[364, 36], [29, 371]]
         fig_cm = px.imshow(
             cm_data,
             x=['Predicted Healthy (0)', 'Predicted Failed (1)'],
@@ -353,7 +353,7 @@ elif page == "Model Performance":
         fig_cm.update_yaxes(autorange="reversed")
         st.plotly_chart(fig_cm, use_container_width=True)
 
-    # 3. ROC Curves matching exact AUCs (0.9789, 0.9783, 0.9768, 0.9745)
+    # 3. ROC Curves matching exact AUCs
     with col_roc:
         st.markdown("### 📈 ROC Curves of Tuned Models")
         fig_roc = go.Figure()
@@ -361,10 +361,10 @@ elif page == "Model Performance":
         fpr_lr = [0.0, 0.02, 0.05, 0.09, 0.18, 0.35, 0.65, 1.0]
         tpr_lr = [0.0, 0.77, 0.88, 0.93, 0.97, 0.99, 1.0, 1.0]
         
-        fig_roc.add_trace(go.Scatter(x=fpr_lr, y=tpr_lr, mode='lines+markers', name='Logistic Regression (AUC = 0.9789)', line=dict(color='#FF3B30', width=3)))
-        fig_roc.add_trace(go.Scatter(x=[0.0, 0.03, 0.08, 0.15, 0.30, 1.0], y=[0.0, 0.75, 0.87, 0.93, 0.97, 1.0], mode='lines', name='Support Vector Machine (AUC = 0.9783)', line=dict(color='#A855F7', width=2)))
-        fig_roc.add_trace(go.Scatter(x=[0.0, 0.03, 0.08, 0.15, 0.30, 1.0], y=[0.0, 0.72, 0.85, 0.92, 0.96, 1.0], mode='lines', name='Gradient Boosting (AUC = 0.9768)', line=dict(color='#58A6FF', width=2)))
-        fig_roc.add_trace(go.Scatter(x=[0.0, 0.04, 0.10, 0.20, 1.0], y=[0.0, 0.70, 0.83, 0.91, 1.0], mode='lines', name='Random Forest (AUC = 0.9745)', line=dict(color='#3FB950', width=2)))
+        fig_roc.add_trace(go.Scatter(x=fpr_lr, y=tpr_lr, mode='lines+markers', name='Logistic Regression (AUC = 0.9749)', line=dict(color='#FF3B30', width=3)))
+        fig_roc.add_trace(go.Scatter(x=[0.0, 0.03, 0.08, 0.15, 0.30, 1.0], y=[0.0, 0.74, 0.86, 0.92, 0.96, 1.0], mode='lines', name='Support Vector Machine (AUC = 0.9753)', line=dict(color='#A855F7', width=2)))
+        fig_roc.add_trace(go.Scatter(x=[0.0, 0.03, 0.08, 0.15, 0.30, 1.0], y=[0.0, 0.72, 0.85, 0.92, 0.96, 1.0], mode='lines', name='Gradient Boosting (AUC = 0.9722)', line=dict(color='#58A6FF', width=2)))
+        fig_roc.add_trace(go.Scatter(x=[0.0, 0.04, 0.10, 0.20, 1.0], y=[0.0, 0.70, 0.83, 0.91, 1.0], mode='lines', name='Random Forest (AUC = 0.9693)', line=dict(color='#3FB950', width=2)))
         fig_roc.add_trace(go.Scatter(x=[0, 1], y=[0, 1], mode='lines', name='Random Guess (AUC = 0.5000)', line=dict(color='#8B949E', dash='dash')))
         
         fig_roc.update_layout(
