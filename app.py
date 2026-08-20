@@ -379,42 +379,7 @@ elif page == "Model Performance":
         )
         st.plotly_chart(fig_roc, use_container_width=True)
 
-    st.write("")
-    
-    # 4. Feature Drivers / Coefficients Chart (Extracted from single best_ev_battery_model.pkl)
-    st.markdown("### 🧬 Feature Importance & Risk Drivers")
-    artifact, avail = model_loader.load_model()
-    if avail and isinstance(artifact, dict) and "model" in artifact:
-        model = artifact["model"]
-        cols = artifact.get("trained_columns", [])
-        
-        if hasattr(model, "coef_") and cols:
-            coefs = model.coef_[0]
-            fi_df = pd.DataFrame({"Feature": cols, "Coefficient": coefs})
-            fi_df["Abs_Coef"] = fi_df["Coefficient"].abs()
-            fi_df = fi_df.sort_values(by="Abs_Coef", ascending=True).tail(12)
-            fi_df["Risk Impact"] = fi_df["Coefficient"].apply(lambda x: "Increases Risk (+)" if x > 0 else "Reduces Risk (-)")
-            
-            fig_fi = px.bar(
-                fi_df,
-                y="Feature",
-                x="Coefficient",
-                color="Risk Impact",
-                orientation="h",
-                text=[f"{v:+.3f}" for v in fi_df["Coefficient"]],
-                title="Model Feature Coefficients (Tuned Logistic Regression)",
-                template="plotly_dark",
-                color_discrete_map={"Increases Risk (+)": "#FF3B30", "Reduces Risk (-)": "#30D158"}
-            )
-            fig_fi.update_layout(
-                xaxis_title="Coefficient Value (Log-Odds Impact on Battery Failure)",
-                yaxis_title="Telemetry Feature",
-                paper_bgcolor="#1E222D",
-                plot_bgcolor="#1E222D",
-                height=420
-            )
-            fig_fi.update_traces(textposition="outside")
-            st.plotly_chart(fig_fi, use_container_width=True)
+
 
 
 # ==============================================================================
